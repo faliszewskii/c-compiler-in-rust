@@ -2,12 +2,12 @@ mod compiler;
 
 extern crate clap;
 
+use clap::Parser;
 use env::consts::EXE_SUFFIX;
+use log::trace;
 use std::env;
 use std::error::Error;
-use clap::Parser;
-use std::path::{PathBuf};
-use log::trace;
+use std::path::PathBuf;
 
 const PROGRAM_NAME: &str = "C compiler in Rust";
 const PROGRAM_DESC: &str = "A C language compiler written in Rust.";
@@ -29,11 +29,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     trace!("Parsed the following args: {:?}", args);
 
-    let output = args.output.unwrap_or_else(|| {
-        PathBuf::from(format!("app{}", EXE_SUFFIX))
-    });
+    let output = args
+        .output
+        .unwrap_or_else(|| PathBuf::from(format!("app{}", EXE_SUFFIX)));
 
-    compiler::compile(args.inputs, output);
+    compiler::compile(&args.inputs, output)?;
 
     Ok(())
 }
