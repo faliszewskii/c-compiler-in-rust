@@ -1,4 +1,6 @@
 mod compiler;
+mod translation_phases;
+mod error;
 
 extern crate clap;
 
@@ -6,8 +8,9 @@ use clap::Parser;
 use env::consts::EXE_SUFFIX;
 use log::trace;
 use std::env;
-use std::error::Error;
 use std::path::PathBuf;
+
+use error::compiler_error::CompilerError;
 
 const PROGRAM_NAME: &str = "C compiler in Rust";
 const PROGRAM_DESC: &str = "A C language compiler written in Rust.";
@@ -15,7 +18,7 @@ const PROGRAM_DESC: &str = "A C language compiler written in Rust.";
 #[derive(Parser, Debug)]
 #[command(version, name = PROGRAM_NAME, about = PROGRAM_DESC)]
 struct Args {
-    /// Path to input C source files to compile
+    /// Paths to input C source files to compile
     inputs: Vec<PathBuf>,
 
     /// Path to the output executable
@@ -23,7 +26,7 @@ struct Args {
     output: Option<PathBuf>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), CompilerError> {
     env_logger::init();
 
     let args = Args::parse();
@@ -33,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .output
         .unwrap_or_else(|| PathBuf::from(format!("app{}", EXE_SUFFIX)));
 
-    compiler::compile(&args.inputs, output)?;
+    compiler::compile(&args.inputs, output);
 
     Ok(())
 }
