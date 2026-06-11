@@ -1,19 +1,24 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter};
+use std::env;
 
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum CompilerError {
+    #[error("{0}")]
     UserError(String),
+    #[error(transparent)]
     Internal(anyhow::Error),
 }
 
-impl Display for CompilerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CompilerError::UserError(msg) => write!(f, "{}", msg),
-            CompilerError::Internal(error) => write!(f, "{}", error),
-        }
+impl CompilerError {
+    pub fn report_and_exit(self) -> ! {
+        let program_path = env::current_exe().expect("Couldn't retrieve executable name");
+        let program_name = program_path.file_name().expect("No file name");
+        eprintln!("{}: {self}", program_name.display());
+        std::process::exit(1);
     }
 }
 
-impl Error for CompilerError {}
+impl From<anyhow::Error> for CompilerError {
+    fn from(value: anyhow::Error) -> Self {
+        CompilerError::Internal(value)
+    }
+}

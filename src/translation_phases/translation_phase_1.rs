@@ -1,6 +1,4 @@
-use crate::error::CompilerError;
-
-fn normalize_line_endings(bytes: &[u8]) -> Result<Vec<u8>, CompilerError> {
+fn normalize_line_endings(bytes: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut iter = bytes.iter().peekable();
     while let Some(c) = iter.next() {
@@ -14,10 +12,10 @@ fn normalize_line_endings(bytes: &[u8]) -> Result<Vec<u8>, CompilerError> {
             _ => out.push(*c),
         }
     }
-    Ok(out)
+    out
 }
 
-fn replace_trigraphs(bytes: &[u8]) -> Result<Vec<u8>, CompilerError> {
+fn replace_trigraphs(bytes: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut iter = bytes.iter().peekable();
     while let Some(c) = iter.next() {
@@ -47,9 +45,9 @@ fn replace_trigraphs(bytes: &[u8]) -> Result<Vec<u8>, CompilerError> {
             out.push(*c);
         }
     }
-    Ok(out)
+    out
 }
 
-pub fn translation_phase_1(bytes: &[u8]) -> Result<Vec<u8>, CompilerError> {
-    replace_trigraphs(&normalize_line_endings(bytes)?)
+pub fn translation_phase_1(bytes: &[u8]) -> Vec<u8> {
+    replace_trigraphs(&normalize_line_endings(bytes))
 }

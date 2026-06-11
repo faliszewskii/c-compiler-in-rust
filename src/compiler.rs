@@ -12,11 +12,11 @@ fn save_bytes(f: &PathBuf, bytes: &[u8]) -> Result<(), CompilerError> {
         .map_err(|_| UserError(format!("Could not write to file {}", f.display())))
 }
 
-pub fn compile(input_files: &[PathBuf], output_file: PathBuf) -> Result<(), CompilerError> {
+pub fn compile(input_files: &[PathBuf], output_file: PathBuf) -> Result<(), CompilerError> {        
     let phase_1_result: Vec<Vec<u8>> = input_files
         .iter()
         .map(read_bytes)
-        .map(|r| r.and_then(|bytes| translation_phase_1(&bytes)))
+        .map(|r| r.and_then(|bytes| Ok(translation_phase_1(&bytes))))
         .collect::<Result<_, _>>()?;
     phase_1_result
         .iter()
