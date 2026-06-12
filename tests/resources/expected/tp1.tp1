@@ -1,0 +1,74 @@
+/* Phase 1 test file for C compiler preprocessing */
+
+/* UTF-8 multibyte characters */
+UTF8: café naïve π 漢字
+
+/* Full basic source character set coverage */
+
+int main(void)
+{
+    /* digits */
+    int a0 = 0;
+    int a9 = 9;
+
+    /* letters */
+    int AaZz = 123;
+
+    /* whitespace */
+
+
+
+    /* punctuation set from spec */
+    int _var = 1;
+    int arr[10] = {0};
+    int hash = #;
+    int parens = (1 + 2);
+    int angle = <1> > 0;
+    int mod = 10 % 3;
+    int colon = 1:2;
+    int semi = 1;2;
+    int dot = .;
+    int question = ?1:2;
+    int mul = 2 * 3;
+    int plus = 1 + 2;
+    int minus = 3 - 1;
+    int div = 6 / 2;
+    int caret = 1 ^ 2;
+    int bitand = 1 & 1;
+    int bitor = 1 | 0;
+    int tilde = ~1;
+    int not = !0;
+    int eq = (1 == 1);
+    int comma = 1,2;
+    char backslash = '\\';
+    char quote = '\'';
+    char dquote = "\"";
+
+    return 0;
+}
+
+/* Trigraph tests (until C23) */
+#include <stdio.h>      /* becomes #include */
+#define FOO 1           /* becomes #define */
+
+int trigraph_test()
+{
+    int arr[3] = {1, 2, 3};
+    int x = 0;
+    if (x || 0)
+        x++;
+
+    return 0;
+}
+
+/* expected transformations:
+   # -> #
+   [ -> [
+   ] -> ]
+   { -> {
+   } -> }
+   \ -> \
+   ^ -> ^
+   | -> |
+   ~ -> ~
+*/
