@@ -27,13 +27,6 @@ struct Args {
     output: Option<PathBuf>,
 }
 
-fn handle_compiler_error(err: CompilerError) -> anyhow::Result<()> {
-    match err {
-        CompilerError::UserError(_) => err.report_and_exit(),
-        CompilerError::Internal(internal_error) => Err(internal_error),
-    }
-}
-
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
@@ -48,4 +41,11 @@ fn main() -> anyhow::Result<()> {
         return handle_compiler_error(err);
     }
     Ok(())
+}
+
+fn handle_compiler_error(err: CompilerError) -> anyhow::Result<()> {
+    match err {
+        CompilerError::UserError(_) => err.report_and_exit(),
+        CompilerError::Internal(internal_error) => Err(internal_error),
+    }
 }

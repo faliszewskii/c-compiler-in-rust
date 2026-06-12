@@ -1,3 +1,8 @@
+
+pub fn translation_phase_1(bytes: &[u8]) -> Vec<u8> {
+    replace_trigraphs(&normalize_line_endings(bytes))
+}
+
 fn normalize_line_endings(bytes: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(bytes.len());
     let mut iter = bytes.iter().peekable();
@@ -46,10 +51,6 @@ fn replace_trigraphs(bytes: &[u8]) -> Vec<u8> {
         }
     }
     out
-}
-
-pub fn translation_phase_1(bytes: &[u8]) -> Vec<u8> {
-    replace_trigraphs(&normalize_line_endings(bytes))
 }
 
 #[cfg(test)]
