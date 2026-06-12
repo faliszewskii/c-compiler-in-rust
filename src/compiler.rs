@@ -1,7 +1,7 @@
 use crate::error::CompilerError;
 use crate::translation_phases::translation_phase_1::translation_phase_1;
-use std::path::PathBuf;
 use CompilerError::UserError;
+use std::path::PathBuf;
 
 fn read_bytes(f: &PathBuf) -> Result<Vec<u8>, CompilerError> {
     std::fs::read(f).map_err(|_| UserError(format!("Could not read from file {}", f.display())))

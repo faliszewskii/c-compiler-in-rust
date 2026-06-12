@@ -1,4 +1,3 @@
-use std::io::Write;
 mod compiler;
 mod error;
 mod translation_phases;
@@ -6,15 +5,16 @@ mod translation_phases;
 extern crate clap;
 
 use clap::Parser;
+use const_format::concatcp;
 use env::consts::EXE_SUFFIX;
 use error::compiler_error::CompilerError;
 use log::trace;
 use std::env;
 use std::path::PathBuf;
-use std::process::exit;
 
 const PROGRAM_NAME: &str = "C compiler in Rust";
 const PROGRAM_DESC: &str = "A C language compiler written in Rust.";
+const DEFAULT_EXE: &str = concatcp!("app", EXE_SUFFIX);
 
 #[derive(Parser, Debug)]
 #[command(version, name = PROGRAM_NAME, about = PROGRAM_DESC)]
@@ -40,9 +40,7 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     trace!("Parsed the following args: {:?}", args);
 
-    let output = args
-        .output
-        .unwrap_or_else(|| PathBuf::from(format!("app{}", EXE_SUFFIX)));
+    let output = args.output.unwrap_or_else(|| PathBuf::from(DEFAULT_EXE));
 
     let result = compiler::compile(&args.inputs, output);
 
