@@ -51,3 +51,40 @@ fn replace_trigraphs(bytes: &[u8]) -> Vec<u8> {
 pub fn translation_phase_1(bytes: &[u8]) -> Vec<u8> {
     replace_trigraphs(&normalize_line_endings(bytes))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_line_endings() {
+        // GIVEN
+        let bytes = "A\rB\nC\r\nD\n\rE".as_bytes();
+        // WHEN
+        let result = normalize_line_endings(bytes);
+        // THEN
+        let expected = "A\nB\nC\nD\n\nE".as_bytes();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_replace_trigraphs() {
+        // GIVEN
+        let bytes = b"??= ??( ??/ ??) ??' ??< ??! ??> ??-";
+        // WHEN
+        let result = replace_trigraphs(bytes);
+        // THEN
+        let expected = b"# [ \\ ] ^ { | } ~";
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_non_trigraphs_are_unchanged() {
+        // GIVEN
+        let bytes = b"?? ??x ?x= ????";
+        // WHEN
+        let result = replace_trigraphs(bytes);
+        // THEN
+        assert_eq!(result, bytes);
+    }
+}
