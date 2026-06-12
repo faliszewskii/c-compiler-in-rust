@@ -35,7 +35,7 @@ fn main() -> anyhow::Result<()> {
 
     let output = args.output.unwrap_or_else(|| PathBuf::from(DEFAULT_EXE));
 
-    let result = compiler::compile(&args.inputs, output);
+    let result = compiler::compile(&args.inputs, &output);
 
     if let Err(err) = result {
         return handle_compiler_error(err);
