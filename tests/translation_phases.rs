@@ -1,4 +1,5 @@
 use std::env::current_dir;
+use assert_cmd::Command;
 
 mod test_utils;
 
@@ -8,7 +9,9 @@ fn test_translation_phase_1() {
     let expecteds = [current_dir().unwrap().join("tests/resources/expected/tp1/tp1.tp1")];
 
     let temp = tempfile::tempdir().unwrap();
-    test_utils::test_compiler_output(&inputs, &temp.path().join("app"), &expecteds);
+    let mut bin = Command::cargo_bin("c-compiler-in-rust").unwrap();
+    bin.arg("--until").arg("tp1");
+    test_utils::test_compiler_output(&mut bin, &inputs, &temp.path().join("app"), &expecteds);
 }
 
 #[test]
@@ -20,5 +23,7 @@ fn test_translation_phase_2() {
     ];
 
     let temp = tempfile::tempdir().unwrap();
-    test_utils::test_compiler_output(&inputs, &temp.path().join("app"), &expecteds);
+    let mut bin = Command::cargo_bin("c-compiler-in-rust").unwrap();
+    bin.arg("--until").arg("tp2");
+    test_utils::test_compiler_output(&mut bin, &inputs, &temp.path().join("app"), &expecteds);
 }

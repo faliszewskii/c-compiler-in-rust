@@ -1,8 +1,7 @@
 use assert_cmd::Command;
 use std::path::{Path, PathBuf};
 
-pub fn test_compiler_output(inputs: &[PathBuf], output: &Path, expecteds: &[PathBuf]) {
-    let mut bin = Command::cargo_bin("c-compiler-in-rust").unwrap();
+pub fn test_compiler_output(bin: &mut Command, inputs: &[PathBuf], output: &Path, expecteds: &[PathBuf]) {
     for input in inputs {
         assert!(input.exists());
         bin.arg(input);

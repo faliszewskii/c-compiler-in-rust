@@ -4,6 +4,8 @@ use std::env;
 pub enum CompilerError {
     #[error("{0}")]
     UserError(String),
+    #[error("Early return requested")]
+    ShortCircuit(),
     #[error(transparent)]
     Internal(anyhow::Error),
 }
