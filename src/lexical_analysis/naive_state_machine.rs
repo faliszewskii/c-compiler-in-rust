@@ -1,14 +1,14 @@
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TransitionRule<State, LexemeKind> {
+pub struct TransitionRule<State, LexemeKind: 'static> {
     pub pattern: &'static str,
     pub current_state: State,
     pub next_state: State,
-    pub output: Option<LexemeKind>,
+    pub outputs: &'static [LexemeKind],
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LexerStateMachine<State, LexemeKind> {
+pub struct LexerStateMachine<State, LexemeKind: 'static> {
     pub state: State,
     pub rules: Vec<TransitionRule<State, LexemeKind>>,
 }

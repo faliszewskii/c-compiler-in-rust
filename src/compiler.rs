@@ -4,6 +4,8 @@ use crate::error::CompilerError;
 use crate::error::CompilerError::ShortCircuit;
 use crate::translation_phases::translation_phase_1::translation_phase_1;
 use crate::translation_phases::translation_phase_2::translation_phase_2;
+use crate::translation_phases::translation_phase_3::{preprocessing_tokens, translation_phase_3};
+use preprocessing_tokens::PreprocessingTokens;
 use std::path::{Path, PathBuf};
 use CompilerError::UserError;
 
@@ -12,10 +14,10 @@ pub fn compile(
     output_file: &Path,
     settings: &CompilerSettings,
 ) -> Result<(), CompilerError> {
-    let _preprocessing_result: Vec<Vec<u8>> = input_files
+    let _preprocessing_result = input_files
         .iter()
         .map(|input_file: &PathBuf| preprocess_file(input_file, output_file, settings))
-        .collect::<Result<_, _>>()?;
+        .collect::<Result<Vec<_>, _>>()?;
     Ok(())
 }
 
@@ -23,7 +25,7 @@ fn preprocess_file(
     input_file: &Path,
     output_file: &Path,
     settings: &CompilerSettings,
-) -> Result<Vec<u8>, CompilerError> {
+) -> Result<PreprocessingTokens, CompilerError> {
     let output_dir = output_file
         .parent()
         .ok_or(UserError("Couldn't get outputs parent dir".to_string()))?;
@@ -43,7 +45,20 @@ fn preprocess_file(
         Err(ShortCircuit())?
     }
 
-    Ok(bytes)
+    // Translation phase 3: Preprocessor tokens
+    let source = String::from_utf8_lossy(&bytes).to_string();
+    let preprocessing_tokens = translation_phase_3(&source)?;
+    save_step(
+        preprocessing_tokens.to_string().as_ref(),
+        input_file,
+        output_dir,
+        "tp3",
+    )?;
+    if settings.until == Some(CompilationStage::TranslationPhase3) {
+        Err(ShortCircuit())?
+    }
+
+    Ok(preprocessing_tokens)
 }
 
 fn save_step(
