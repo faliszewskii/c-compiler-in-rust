@@ -2,7 +2,7 @@ use crate::error::CompilerError;
 use crate::error::CompilerError::UserError;
 use crate::lexical_analysis::lexeme::Lexeme;
 use crate::lexical_analysis::naive_state_machine::LexerStateMachine;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use regex::{Captures, Match, Regex};
 
 pub fn lex<State: std::cmp::PartialEq + std::clone::Clone, LexemeKind: std::clone::Clone>(
@@ -33,6 +33,7 @@ pub fn lex<State: std::cmp::PartialEq + std::clone::Clone, LexemeKind: std::clon
         }
         let (longest_match, selected_rule) = matched_rules
             .iter()
+            .rev()
             .max_by_key(|(matched, _)| get_implicit_capture_group(matched).len())
             .ok_or_else(|| UserError("Unexpected character during lexing".to_owned()))?;
         state_machine.state = selected_rule.next_state.clone();
