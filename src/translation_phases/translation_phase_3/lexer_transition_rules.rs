@@ -2,7 +2,7 @@ use crate::lexical_analysis::naive_state_machine::TransitionRule;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingLexemeKind::Identifier;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingState::{InComment, Normal};
 use const_format::formatcp;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{PPNumber, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Other, PPNumber, Whitespace};
 use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Display)]
@@ -37,10 +37,17 @@ macro_rules! rule {
 }
 
 // white space
-const COMMENT: Rule = rule!(r"(//.*\\n)", Normal, Normal, &[Whitespace]);
-const COMMENT_BLOCK_BEGIN: Rule = rule!(r"(/\*)", Normal, InComment, &[Whitespace]);
-const COMMENT_BLOCK_END: Rule = rule!(r"(.*\*/)", InComment, Normal, &[Whitespace]);
-const WHITE_SPACE: Rule = rule!(r"(\t|\n|\v|\f|\r| )", Normal, Normal, &[Whitespace]);
+const COMMENT: &str = r"(//.*\\n)";
+const COMMENT_RULE: Rule = rule!(COMMENT, Normal, Normal, &[Whitespace]);
+const COMMENT_BLOCK_BEGIN: &str = r"(/\*)";
+const COMMENT_BLOCK_BEGIN_RULE: Rule = rule!(COMMENT_BLOCK_BEGIN, Normal, InComment, &[Whitespace]);
+const COMMENT_BLOCK_END: &str = r"(.*\*/)";
+const COMMENT_BLOCK_END_RULE: Rule = rule!(COMMENT_BLOCK_END, InComment, Normal, &[Whitespace]);
+const WHITE_SPACE: &str = r"(\t|\n|\v|\f|\r| )";
+const WHITE_SPACE_RULE: Rule = rule!(WHITE_SPACE, Normal, Normal, &[Whitespace]);
+
+// header name
+const HEADER_NAME: &str = ""; // TODO
 
 // identifier
 const DIGIT: &str = r"[0-9]";
@@ -52,23 +59,40 @@ const IDENTIFIER_RULE: Rule = rule!(IDENTIFIER, Normal, Normal, &[Identifier]);
 const PP_NUMBER: &str = formatcp!(r"(\.?{DIGIT}(?:e[\+\-]|E[\+\-]|{NON_DIGIT}|{DIGIT}|\.)*)");
 const PP_NUMBER_RULE: Rule = rule!(PP_NUMBER, Normal, Normal, &[PPNumber]);
 
+// character constant
+const SIMPLE_ESC_SEQ: &str = r#"(?:\\'|\\"|\\\?|\\\\|\\a|\\b|\\f|\\n|\\r|\\t|\\v)"#;
+const OCTAL_ESC_SEQ: &str = r"\\[0-7]{1,3}";
+const HEXADECIMAL_ESC_SEQ: &str = r"\\x[0-9A-Fa-f]+";
+const ESCAPE_SEQUENCE: &str = formatcp!(r"{SIMPLE_ESC_SEQ}|{OCTAL_ESC_SEQ}|{HEXADECIMAL_ESC_SEQ}");
+const SOURCE_CHAR_SET: &str = r##"[A-Za-z0-9!"#%&'\(\)\*\+,\-\./:;<=>\?\[\\\]\^_\{\|\}~]"##;
+const C_CHAR: &str = formatcp!(r"(?:[{SOURCE_CHAR_SET}--['\\\n]]|{ESCAPE_SEQUENCE})");
+const C_CHAR_SEQUENCE: &str = formatcp!(r"{C_CHAR}+");
+const CHARACTER_CONSTANT: &str = formatcp!(r"(L?'{C_CHAR_SEQUENCE}')");
+const CHARACTER_CONSTANT_RULE: Rule =
+    rule!(CHARACTER_CONSTANT, Normal, Normal, &[CharacterConstant]);
+
+// string literal
+const STRING_LITERAL: &str = ""; // TODO
+
 // punctuator
 const ONE_CHAR_PUNCTUATOR: &str = r"[\[\]\(\)\{\}\.&\*\+\-~!/%<=>\^\|\?;:,#]";
 const MUL_CHAR_PUNCTUATOR: &str = r"(?:\.\.\.|\->|\+\+|\-\-|sizeof|<<|>>|<=|>=|==|!=|&&|\|\||\*=|/=|%=|\+=|\-=|<<=|>>=|&=|\^=|\|=|##)";
 const PUNCTUATOR: &str = formatcp!(r"({ONE_CHAR_PUNCTUATOR}|{MUL_CHAR_PUNCTUATOR})");
 const PUNCTUATOR_RULE: Rule = rule!(PUNCTUATOR, Normal, Normal, &[Identifier]);
 
+// each non-white-space character that cannot be one of the above
+const OTHER_RULE: Rule = rule!(r"(.)", Normal, Normal, &[Other]);
 
 pub(crate) const RULE_SET: &[Rule] = &[
-    COMMENT,
-    COMMENT_BLOCK_BEGIN,
-    COMMENT_BLOCK_END,
-    WHITE_SPACE,
+    COMMENT_RULE,
+    COMMENT_BLOCK_BEGIN_RULE,
+    COMMENT_BLOCK_END_RULE,
+    WHITE_SPACE_RULE,
     // HEADER_NAME_RULE,
     IDENTIFIER_RULE,
     PP_NUMBER_RULE,
-    // CHARACTER_CONSTANT_RULE,
+    CHARACTER_CONSTANT_RULE,
     // STRING_LITERAL_RULE,
     PUNCTUATOR_RULE,
-    // OTHER
+    OTHER_RULE,
 ];
