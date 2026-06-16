@@ -18,7 +18,7 @@ pub fn test_compiler_output(inputs: &[PathBuf], output: &Path, expecteds: &[Path
         let output = output_dir.join(file_name);
         assert!(output.exists());
         assert_eq!(
-            std::fs::read(&output).unwrap(),
+            std::fs::read(expected).unwrap(),
             std::fs::read(output).unwrap()
         );
     }
