@@ -1,6 +1,6 @@
 use crate::error::CompilerError::UserError;
 use crate::lexical_analysis::lexeme::Lexeme;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Identifier, Other, PPNumber, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Identifier, Other, PPNumber, StringLiteral, Whitespace};
 use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
 use crate::translation_phases::translation_phase_3::translation_phase_3;
 use predicates::Predicate;
@@ -109,7 +109,7 @@ fn test_character_constant() {
     // GIVEN
     let source = "'a' 'abc123' '!#%&()*+,-./:;<=>?[]^_{|}~' L'Z' \
         '\\n\\t\\r\\b\\f\\v\\a\\\\\\'\\\"\\?' '\\0\\7\\77\\123\\400' '\\x0\\xA\\x1f\\xDEADBEEF' \
-        'a\\nb\\123c\\xFF' 'Az09_' L'Hello\\nWorld'";
+        'a\\nb\\123c\\xFF' 'Az09_' L'Hello\\nWorld' '\"'";
 
     // WHEN
     let result = translation_phase_3(source).unwrap();
@@ -136,6 +136,8 @@ fn test_character_constant() {
             lexeme!(CharacterConstant, "'Az09_'"),
             lexeme!(Whitespace, " "),
             lexeme!(CharacterConstant, "L'Hello\\nWorld'"),
+            lexeme!(Whitespace, " "),
+            lexeme!(CharacterConstant, "'\"'"),
         ],
     };
 
@@ -156,6 +158,63 @@ fn test_invalid_character_constant() {
             .tokens
             .iter()
             .all(|token| { token.kind != CharacterConstant })
+    );
+}
+
+#[test]
+fn test_string_literal() {
+    // GIVEN
+    let source = "\"a\" \"abc123\" \"!#%&()*+,-./:;<=>?[]^_{|}~\" L\"Z\" \
+        \"\\n\\t\\r\\b\\f\\v\\a\\\\\\\"\\\"\\?\" \"\\0\\7\\77\\123\\400\" \"\\x0\\xA\\x1f\\xDEADBEEF\" \
+        \"a\\nb\\123c\\xFF\" \"Az09_\" L\"Hello\\nWorld\" \"'\"";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(StringLiteral, "\"a\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"abc123\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"!#%&()*+,-./:;<=>?[]^_{|}~\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "L\"Z\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"\\n\\t\\r\\b\\f\\v\\a\\\\\\\"\\\"\\?\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"\\0\\7\\77\\123\\400\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"\\x0\\xA\\x1f\\xDEADBEEF\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"a\\nb\\123c\\xFF\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"Az09_\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "L\"Hello\\nWorld\""),
+            lexeme!(Whitespace, " "),
+            lexeme!(StringLiteral, "\"'\""),
+        ],
+    };
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_invalid_string_literal() {
+    // GIVEN
+    let source = r#""" " "abc "\ "\x" "\8" "abc\" L"" L"\x" "foo "\n"#;
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    assert!(
+        result
+            .tokens
+            .iter()
+            .all(|token| { token.kind != StringLiteral })
     );
 }
 

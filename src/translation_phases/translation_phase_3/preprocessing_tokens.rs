@@ -15,8 +15,12 @@ impl Debug for PreprocessingTokens {
 
 impl Display for PreprocessingTokens {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for lexeme in &self.tokens {
-            write!(f, "{} ", lexeme)?;
+        let mut iter = &mut self.tokens.iter().peekable();
+        while let Some(lexeme) = iter.next() {
+            write!(f, "{}", lexeme)?;
+            if iter.peek().is_some() {
+                write!(f, " ")?;
+            }
             if PreprocessingLexemeKind::Whitespace == lexeme.kind && lexeme.text == "\n" {
                 writeln!(f)?;
             }

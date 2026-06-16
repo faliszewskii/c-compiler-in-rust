@@ -2,11 +2,11 @@ use crate::lexical_analysis::naive_state_machine::TransitionRule;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingLexemeKind::Identifier;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingState::{InComment, Normal};
 use const_format::formatcp;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Other, PPNumber, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Other, PPNumber, StringLiteral, Whitespace};
 use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Display)]
-pub enum PreprocessingLexemeKind {
+pub(crate) enum PreprocessingLexemeKind {
     HeaderName,
     Identifier,
     PPNumber,
@@ -72,7 +72,11 @@ const CHARACTER_CONSTANT_RULE: Rule =
     rule!(CHARACTER_CONSTANT, Normal, Normal, &[CharacterConstant]);
 
 // string literal
-const STRING_LITERAL: &str = ""; // TODO
+const S_CHAR: &str = formatcp!(r#"(?:[{SOURCE_CHAR_SET}--["\\\n]]|{ESCAPE_SEQUENCE})"#);
+const S_CHAR_SEQUENCE: &str = formatcp!(r"{S_CHAR}+");
+const STRING_LITERAL: &str = formatcp!(r#"(L?"{S_CHAR_SEQUENCE}")"#);
+const STRING_LITERAL_RULE: Rule =
+    rule!(STRING_LITERAL, Normal, Normal, &[StringLiteral]);
 
 // punctuator
 const ONE_CHAR_PUNCTUATOR: &str = r"[\[\]\(\)\{\}\.&\*\+\-~!/%<=>\^\|\?;:,#]";
@@ -92,7 +96,7 @@ pub(crate) const RULE_SET: &[Rule] = &[
     IDENTIFIER_RULE,
     PP_NUMBER_RULE,
     CHARACTER_CONSTANT_RULE,
-    // STRING_LITERAL_RULE,
+    STRING_LITERAL_RULE,
     PUNCTUATOR_RULE,
     OTHER_RULE,
 ];
