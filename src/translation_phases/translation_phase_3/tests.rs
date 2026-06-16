@@ -3,7 +3,7 @@ use crate::error::CompilerError::UserError;
 use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
 use crate::translation_phases::translation_phase_3::translation_phase_3;
 use predicates::Predicate;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{Identifier, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{Identifier, PPNumber, Whitespace};
 
 macro_rules! lexeme {
     ($kind: ident, $text: literal) => {
@@ -21,7 +21,10 @@ fn test_block_comment() {
     // WHEN
     let result = translation_phase_3(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens { tokens: Vec::new() };
+    let expected = PreprocessingTokens { tokens: vec!(
+        lexeme!(Whitespace, "/*"),
+        lexeme!(Whitespace, " abc 123 #include<iostream> 2 + 3, */"),
+    ) };
     assert_eq!(result, expected);
 }
 
@@ -72,6 +75,23 @@ fn test_identifier() {
         lexeme!(Identifier, "ZYX"),
         lexeme!(Whitespace, " "),
         lexeme!(Identifier, "f4_4"),
+    ], };
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_pp_number() {
+    // GIVEN
+    let source = ".123.456e-e-. 1..E+3.foo 0JBK";
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+    // THEN
+    let expected = PreprocessingTokens { tokens: vec![
+        lexeme!(PPNumber, ".123.456e-e-."),
+        lexeme!(Whitespace, " "),
+        lexeme!(PPNumber, "1..E+3.foo"),
+        lexeme!(Whitespace, " "),
+        lexeme!(PPNumber, "0JBK"),
     ], };
     assert_eq!(result, expected);
 }

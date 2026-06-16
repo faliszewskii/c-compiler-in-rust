@@ -1,6 +1,3 @@
-Whitespace(
-) 
-Identifier(abc) Whitespace( ) Whitespace(/*) Whitespace( jfdal;jfklc;zck; ncvzm, 54uq2p jkfdl;*/) Whitespace( ) Identifier(_zbc4) Whitespace(
-) 
-Whitespace(
-) 
+Whitespace(LF) 
+Identifier(abc) Whitespace( ) PPNumber(1..E+3.foo) Whitespace( ) Whitespace(/*) Whitespace( jfdal;jfklc;zck; ncvzm, 54uq2p jkfdl;*/) Whitespace( ) Identifier(_zbc4) Whitespace(LF) 
+PPNumber(.123.456e-e-.) Whitespace( ) PPNumber(0JBK) Whitespace(LF) 
