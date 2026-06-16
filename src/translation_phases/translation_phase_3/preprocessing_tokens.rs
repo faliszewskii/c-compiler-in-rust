@@ -9,17 +9,7 @@ pub struct PreprocessingTokens {
 
 impl Debug for PreprocessingTokens {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for lexeme in &self.tokens {
-            match lexeme.kind {
-                PreprocessingLexemeKind::Whitespace => {
-                    if lexeme.text == "\n" {
-                        writeln!(f)?;
-                    }
-                }
-                _ => write!(f, "{} ", lexeme)?,
-            }
-        }
-        Ok(())
+        Display::fmt(self, f)
     }
 }
 
