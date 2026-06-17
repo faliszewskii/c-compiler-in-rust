@@ -1,8 +1,12 @@
 use crate::error::CompilerError::UserError;
 use crate::lexical_analysis::lexeme::Lexeme;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Identifier, Other, PPNumber, StringLiteral, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
+    CharacterConstant, HeaderName, Identifier, Other, PPNumber, Punctuator, StringLiteral,
+    Whitespace,
+};
 use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
 use crate::translation_phases::translation_phase_3::translation_phase_3;
+use itertools::Itertools;
 use predicates::Predicate;
 
 macro_rules! lexeme {
@@ -64,6 +68,89 @@ fn test_whitespace() {
         ],
     };
     assert_eq!(result, expected);
+}
+
+#[test]
+fn test_header_rule() {
+    // GIVEN
+    let source = "#include <stdio.h> #include \"numeric_limits.h\"";
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(Punctuator, "#"),
+            lexeme!(Identifier, "include"),
+            lexeme!(Whitespace, " "),
+            lexeme!(HeaderName, "<stdio.h>"),
+            lexeme!(Whitespace, " "),
+            lexeme!(Punctuator, "#"),
+            lexeme!(Identifier, "include"),
+            lexeme!(Whitespace, " "),
+            lexeme!(HeaderName, "\"numeric_limits.h\""),
+        ],
+    };
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_header_names() {
+    // GIVEN
+    let source = "\
+        #include <a>\
+        #include <stdio.h>\
+        #include <path/to/file.hpp>\
+        #include <A-Z_0.9+->\
+        #include \"a\"\
+        #include \"stdio.h\"\
+        #include \"path/to/file.hpp\"\
+        #include \"A-Z_0.9+->\"\
+    ";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(HeaderName, "<a>"),
+            lexeme!(HeaderName, "<stdio.h>"),
+            lexeme!(HeaderName, "<path/to/file.hpp>"),
+            lexeme!(HeaderName, "<A-Z_0.9+->"),
+            lexeme!(HeaderName, "\"a\""),
+            lexeme!(HeaderName, "\"stdio.h\""),
+            lexeme!(HeaderName, "\"path/to/file.hpp\""),
+            lexeme!(HeaderName, "\"A-Z_0.9+->\""),
+        ],
+    };
+
+    assert!(
+        expected
+            .tokens
+            .iter()
+            .all(|token| { result.tokens.iter().contains(token) })
+    );
+}
+
+#[test]
+fn test_invalid_headers() {
+    // GIVEN
+    let source = "\
+        #define <a>\
+        #define \"literal\"\
+        #include 'char_const.h'\
+        #include \"new_line
+        \"\
+        #include <non_source_char_@>\
+    ";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    assert!(
+        result.tokens.iter().all(|token| { token.kind != HeaderName })
+    );
 }
 
 #[test]
@@ -271,7 +358,6 @@ fn test_invalid_string_literal() {
             .all(|token| { token.kind != StringLiteral })
     );
 }
-
 
 #[test]
 fn test_other_rule() {
