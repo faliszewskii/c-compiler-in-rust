@@ -2,7 +2,7 @@ use crate::lexical_analysis::naive_state_machine::TransitionRule;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingLexemeKind::Identifier;
 use crate::translation_phases::translation_phase_3::lexer_transition_rules::PreprocessingState::{InComment, Normal};
 use const_format::formatcp;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Other, PPNumber, StringLiteral, Whitespace};
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{CharacterConstant, Other, PPNumber, Punctuator, StringLiteral, Whitespace};
 use strum::Display;
 
 #[derive(Debug, Clone, PartialEq, Eq, Display)]
@@ -80,9 +80,9 @@ const STRING_LITERAL_RULE: Rule =
 
 // punctuator
 const ONE_CHAR_PUNCTUATOR: &str = r"[\[\]\(\)\{\}\.&\*\+\-~!/%<=>\^\|\?;:,#]";
-const MUL_CHAR_PUNCTUATOR: &str = r"(?:\.\.\.|\->|\+\+|\-\-|sizeof|<<|>>|<=|>=|==|!=|&&|\|\||\*=|/=|%=|\+=|\-=|<<=|>>=|&=|\^=|\|=|##)";
-const PUNCTUATOR: &str = formatcp!(r"({ONE_CHAR_PUNCTUATOR}|{MUL_CHAR_PUNCTUATOR})");
-const PUNCTUATOR_RULE: Rule = rule!(PUNCTUATOR, Normal, Normal, &[Identifier]);
+const MUL_CHAR_PUNCTUATOR: &str = r"(?:sizeof|\.\.\.|<<=|>>=|\->|\+\+|\-\-|<<|>>|<=|>=|==|!=|&&|\|\||\*=|/=|%=|\+=|\-=|&=|\^=|\|=|##)";
+const PUNCTUATOR: &str = formatcp!(r"({MUL_CHAR_PUNCTUATOR}|{ONE_CHAR_PUNCTUATOR})");
+const PUNCTUATOR_RULE: Rule = rule!(PUNCTUATOR, Normal, Normal, &[Punctuator]);
 
 // each non-white-space character that cannot be one of the above
 const OTHER_RULE: Rule = rule!(r"(.)", Normal, Normal, &[Other]);
@@ -93,10 +93,10 @@ pub(crate) const RULE_SET: &[Rule] = &[
     COMMENT_BLOCK_END_RULE,
     WHITE_SPACE_RULE,
     // HEADER_NAME_RULE,
+    PUNCTUATOR_RULE,
     IDENTIFIER_RULE,
     PP_NUMBER_RULE,
     CHARACTER_CONSTANT_RULE,
     STRING_LITERAL_RULE,
-    PUNCTUATOR_RULE,
     OTHER_RULE,
 ];

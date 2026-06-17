@@ -105,6 +105,60 @@ fn test_pp_number() {
 }
 
 #[test]
+fn test_1char_punctuators() {
+    // GIVEN
+    let source = "[](){}.&*+-~!/%<>^|?;:,#=";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    assert!(
+        result
+            .tokens
+            .iter()
+            .all(|token| { token.kind == Punctuator && token.text.len() == 1 })
+    );
+}
+
+#[test]
+fn test_2char_punctuators() {
+    // GIVEN
+    let source = "->++--<<>><=>===!=&&||*=/=%=+=-=&=^=|=##";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    assert!(
+        result
+            .tokens
+            .iter()
+            .all(|token| { token.kind == Punctuator && token.text.len() == 2 })
+    );
+}
+
+#[test]
+fn test_other_punctuators() {
+    // GIVEN
+    let source = "...sizeof<<=>>=";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(Punctuator, "..."),
+            lexeme!(Punctuator, "sizeof"),
+            lexeme!(Punctuator, "<<="),
+            lexeme!(Punctuator, ">>="),
+        ],
+    };
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn test_character_constant() {
     // GIVEN
     let source = "'a' 'abc123' '!#%&()*+,-./:;<=>?[]^_{|}~' L'Z' \
