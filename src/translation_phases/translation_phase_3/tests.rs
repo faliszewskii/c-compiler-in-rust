@@ -1,7 +1,7 @@
 use crate::error::CompilerError::UserError;
 use crate::lexical_analysis::lexeme::Lexeme;
 use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
-    CharacterConstant, HeaderName, Identifier, Other, PPNumber, Punctuator, StringLiteral,
+    CharacterConstant, Comment, HeaderName, Identifier, Other, PPNumber, Punctuator, StringLiteral,
     Whitespace,
 };
 use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
@@ -21,15 +21,15 @@ macro_rules! lexeme {
 #[test]
 fn test_block_comment() {
     // GIVEN
-    let source = "/* abc 123 #include<iostream> 2 + 3, */";
+    let source = "/* /* abc 123 #include<iostream> 2 + 3, */";
     // WHEN
     let result = translation_phase_3(source).unwrap();
     // THEN
     let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Whitespace, "/*"),
-            lexeme!(Whitespace, " abc 123 #include<iostream> 2 + 3, */"),
-        ],
+        tokens: vec![lexeme!(
+            Comment,
+            "/* /* abc 123 #include<iostream> 2 + 3, */"
+        )],
     };
     assert_eq!(result, expected);
 }
@@ -37,7 +37,7 @@ fn test_block_comment() {
 #[test]
 fn test_unterminated_comment() {
     // GIVEN
-    let source = "/*";
+    let source = "/* test /* **** * * /";
     // WHEN
     let result = translation_phase_3(source);
     // THEN
@@ -149,7 +149,10 @@ fn test_invalid_headers() {
 
     // THEN
     assert!(
-        result.tokens.iter().all(|token| { token.kind != HeaderName })
+        result
+            .tokens
+            .iter()
+            .all(|token| { token.kind != HeaderName })
     );
 }
 
