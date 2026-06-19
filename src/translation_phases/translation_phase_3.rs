@@ -3,21 +3,24 @@ use crate::error::CompilerError::UserError;
 use crate::lexical_analysis::lexeme::Lexeme;
 use crate::lexical_analysis::naive_lexer::lex;
 use crate::lexical_analysis::naive_state_machine::LexerStateMachine;
-use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
-    Comment, UnclosedComment, Whitespace,
-};
 pub(crate) use crate::translation_phases::translation_phase_3::lexer_transition_rules::{
     PreprocessingLexemeKind, RULE_SET,
 };
-use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
+use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
+    Comment, UnclosedComment, Whitespace,
+};
 
-pub fn translation_phase_3(source: &str) -> Result<PreprocessingTokens, CompilerError> {
-    Ok(merge_whitespaces(remove_comments(
+pub fn translation_phase_3(
+    source: &str,
+) -> Result<Vec<Lexeme<PreprocessingLexemeKind>>, CompilerError> {
+    Ok(merge_whitespaces(replace_comments(
         lex_preprocessing_tokens(source)?,
     )))
 }
 
-fn lex_preprocessing_tokens(source: &str) -> Result<PreprocessingTokens, CompilerError> {
+fn lex_preprocessing_tokens(
+    source: &str,
+) -> Result<Vec<Lexeme<PreprocessingLexemeKind>>, CompilerError> {
     let rule_set = RULE_SET;
     let mut machine = LexerStateMachine {
         rules: Vec::from(rule_set),
@@ -28,12 +31,13 @@ fn lex_preprocessing_tokens(source: &str) -> Result<PreprocessingTokens, Compile
     {
         Err(UserError("Unterminated comment".to_string()))?
     }
-    Ok(PreprocessingTokens { tokens })
+    Ok(tokens)
 }
 
-fn remove_comments(tokens: PreprocessingTokens) -> PreprocessingTokens {
-    let new_tokens = tokens
-        .tokens
+fn replace_comments(
+    tokens: Vec<Lexeme<PreprocessingLexemeKind>>,
+) -> Vec<Lexeme<PreprocessingLexemeKind>> {
+    tokens
         .iter()
         .map(|x| {
             if x.kind == Comment {
@@ -45,14 +49,14 @@ fn remove_comments(tokens: PreprocessingTokens) -> PreprocessingTokens {
                 x.clone()
             }
         })
-        .collect::<Vec<_>>();
-    PreprocessingTokens { tokens: new_tokens }
+        .collect::<Vec<_>>()
 }
 
-fn merge_whitespaces(tokens: PreprocessingTokens) -> PreprocessingTokens {
+fn merge_whitespaces(
+    tokens: Vec<Lexeme<PreprocessingLexemeKind>>,
+) -> Vec<Lexeme<PreprocessingLexemeKind>> {
     let mut is_previous_a_whitespace = false;
-    let new_tokens = tokens
-        .tokens
+    tokens
         .iter()
         .filter_map(|x| {
             if x.kind == Whitespace && x.text != "\n" {
@@ -69,11 +73,10 @@ fn merge_whitespaces(tokens: PreprocessingTokens) -> PreprocessingTokens {
                 Some(x.clone())
             }
         })
-        .collect::<Vec<_>>();
-    PreprocessingTokens { tokens: new_tokens }
+        .collect::<Vec<_>>()
 }
 
 mod lexer_transition_rules;
-pub(crate) mod preprocessing_tokens;
+pub(crate) mod preprocessing_tokens_display;
 #[cfg(test)]
 mod tests;

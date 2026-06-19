@@ -2,12 +2,15 @@ use crate::compilation_stage::CompilationStage;
 use crate::compiler_settings::CompilerSettings;
 use crate::error::CompilerError;
 use crate::error::CompilerError::ShortCircuit;
+use crate::lexical_analysis::lexeme::Lexeme;
 use crate::translation_phases::translation_phase_1::translation_phase_1;
 use crate::translation_phases::translation_phase_2::translation_phase_2;
-use crate::translation_phases::translation_phase_3::{preprocessing_tokens, translation_phase_3};
-use preprocessing_tokens::PreprocessingTokens;
-use std::path::{Path, PathBuf};
+use crate::translation_phases::translation_phase_3::{
+    PreprocessingLexemeKind, preprocessing_tokens_display, translation_phase_3,
+};
 use CompilerError::UserError;
+use preprocessing_tokens_display::PreprocessingTokensDisplay;
+use std::path::{Path, PathBuf};
 
 pub fn compile(
     input_files: &[PathBuf],
@@ -25,7 +28,7 @@ fn preprocess_file(
     input_file: &Path,
     output_file: &Path,
     settings: &CompilerSettings,
-) -> Result<PreprocessingTokens, CompilerError> {
+) -> Result<Vec<Lexeme<PreprocessingLexemeKind>>, CompilerError> {
     let output_dir = output_file
         .parent()
         .ok_or(UserError("Couldn't get outputs parent dir".to_string()))?;
@@ -48,8 +51,11 @@ fn preprocess_file(
     // Translation phase 3: Preprocessor tokens
     let source = String::from_utf8_lossy(&bytes).to_string();
     let preprocessing_tokens = translation_phase_3(&source)?;
+    let token_display = PreprocessingTokensDisplay {
+        tokens: &preprocessing_tokens,
+    };
     save_step(
-        preprocessing_tokens.to_string().as_ref(),
+        token_display.to_string().as_ref(),
         input_file,
         output_dir,
         "tp3",

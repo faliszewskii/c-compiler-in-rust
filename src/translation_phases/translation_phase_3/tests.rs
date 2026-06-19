@@ -4,7 +4,6 @@ use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
     CharacterConstant, Comment, HeaderName, Identifier, Other, PPNumber, Punctuator, StringLiteral,
     Whitespace,
 };
-use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
 use crate::translation_phases::translation_phase_3::{
     lex_preprocessing_tokens, translation_phase_3,
 };
@@ -27,9 +26,7 @@ fn test_line_comment() {
     // WHEN
     let result = lex_preprocessing_tokens(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![lexeme!(Comment, "// comment")],
-    };
+    let expected = vec![lexeme!(Comment, "// comment")];
     assert_eq!(result, expected);
 }
 
@@ -40,12 +37,10 @@ fn test_block_comment() {
     // WHEN
     let result = lex_preprocessing_tokens(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![lexeme!(
-            Comment,
-            "/* /* abc 123 #include<iostream> 2 + 3, */"
-        )],
-    };
+    let expected = vec![lexeme!(
+        Comment,
+        "/* /* abc 123 #include<iostream> 2 + 3, */"
+    )];
     assert_eq!(result, expected);
 }
 
@@ -74,14 +69,12 @@ fn test_whitespace() {
     // WHEN
     let result = lex_preprocessing_tokens(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Whitespace, "\t"),
-            lexeme!(Whitespace, "\n"),
-            lexeme!(Whitespace, "\r"),
-            lexeme!(Whitespace, " "),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Whitespace, "\t"),
+        lexeme!(Whitespace, "\n"),
+        lexeme!(Whitespace, "\r"),
+        lexeme!(Whitespace, " "),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -92,19 +85,17 @@ fn test_header_rule() {
     // WHEN
     let result = translation_phase_3(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Punctuator, "#"),
-            lexeme!(Identifier, "include"),
-            lexeme!(Whitespace, " "),
-            lexeme!(HeaderName, "<stdio.h>"),
-            lexeme!(Whitespace, " "),
-            lexeme!(Punctuator, "#"),
-            lexeme!(Identifier, "include"),
-            lexeme!(Whitespace, " "),
-            lexeme!(HeaderName, "\"numeric_limits.h\""),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Punctuator, "#"),
+        lexeme!(Identifier, "include"),
+        lexeme!(Whitespace, " "),
+        lexeme!(HeaderName, "<stdio.h>"),
+        lexeme!(Whitespace, " "),
+        lexeme!(Punctuator, "#"),
+        lexeme!(Identifier, "include"),
+        lexeme!(Whitespace, " "),
+        lexeme!(HeaderName, "\"numeric_limits.h\""),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -126,24 +117,21 @@ fn test_header_names() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(HeaderName, "<a>"),
-            lexeme!(HeaderName, "<stdio.h>"),
-            lexeme!(HeaderName, "<path/to/file.hpp>"),
-            lexeme!(HeaderName, "<A-Z_0.9+->"),
-            lexeme!(HeaderName, "\"a\""),
-            lexeme!(HeaderName, "\"stdio.h\""),
-            lexeme!(HeaderName, "\"path/to/file.hpp\""),
-            lexeme!(HeaderName, "\"A-Z_0.9+->\""),
-        ],
-    };
+    let expected = vec![
+        lexeme!(HeaderName, "<a>"),
+        lexeme!(HeaderName, "<stdio.h>"),
+        lexeme!(HeaderName, "<path/to/file.hpp>"),
+        lexeme!(HeaderName, "<A-Z_0.9+->"),
+        lexeme!(HeaderName, "\"a\""),
+        lexeme!(HeaderName, "\"stdio.h\""),
+        lexeme!(HeaderName, "\"path/to/file.hpp\""),
+        lexeme!(HeaderName, "\"A-Z_0.9+->\""),
+    ];
 
     assert!(
         expected
-            .tokens
             .iter()
-            .all(|token| { result.tokens.iter().contains(token) })
+            .all(|token| { result.iter().contains(token) })
     );
 }
 
@@ -163,12 +151,7 @@ fn test_invalid_headers() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    assert!(
-        result
-            .tokens
-            .iter()
-            .all(|token| { token.kind != HeaderName })
-    );
+    assert!(result.iter().all(|token| { token.kind != HeaderName }));
 }
 
 #[test]
@@ -178,15 +161,13 @@ fn test_identifier() {
     // WHEN
     let result = translation_phase_3(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Identifier, "_abc"),
-            lexeme!(Whitespace, " "),
-            lexeme!(Identifier, "ZYX"),
-            lexeme!(Whitespace, " "),
-            lexeme!(Identifier, "f4_4"),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Identifier, "_abc"),
+        lexeme!(Whitespace, " "),
+        lexeme!(Identifier, "ZYX"),
+        lexeme!(Whitespace, " "),
+        lexeme!(Identifier, "f4_4"),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -197,15 +178,13 @@ fn test_pp_number() {
     // WHEN
     let result = translation_phase_3(source).unwrap();
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(PPNumber, ".123.456e-e-."),
-            lexeme!(Whitespace, " "),
-            lexeme!(PPNumber, "1..E+3.foo"),
-            lexeme!(Whitespace, " "),
-            lexeme!(PPNumber, "0JBK"),
-        ],
-    };
+    let expected = vec![
+        lexeme!(PPNumber, ".123.456e-e-."),
+        lexeme!(Whitespace, " "),
+        lexeme!(PPNumber, "1..E+3.foo"),
+        lexeme!(Whitespace, " "),
+        lexeme!(PPNumber, "0JBK"),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -220,7 +199,6 @@ fn test_1char_punctuators() {
     // THEN
     assert!(
         result
-            .tokens
             .iter()
             .all(|token| { token.kind == Punctuator && token.text.len() == 1 })
     );
@@ -237,7 +215,6 @@ fn test_2char_punctuators() {
     // THEN
     assert!(
         result
-            .tokens
             .iter()
             .all(|token| { token.kind == Punctuator && token.text.len() == 2 })
     );
@@ -252,14 +229,12 @@ fn test_other_punctuators() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Punctuator, "..."),
-            lexeme!(Punctuator, "sizeof"),
-            lexeme!(Punctuator, "<<="),
-            lexeme!(Punctuator, ">>="),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Punctuator, "..."),
+        lexeme!(Punctuator, "sizeof"),
+        lexeme!(Punctuator, "<<="),
+        lexeme!(Punctuator, ">>="),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -274,31 +249,29 @@ fn test_character_constant() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(CharacterConstant, "'a'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'abc123'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'!#%&()*+,-./:;<=>?[]^_{|}~'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "L'Z'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'\\n\\t\\r\\b\\f\\v\\a\\\\\\'\\\"\\?'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'\\0\\7\\77\\123\\400'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'\\x0\\xA\\x1f\\xDEADBEEF'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'a\\nb\\123c\\xFF'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'Az09_'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "L'Hello\\nWorld'"),
-            lexeme!(Whitespace, " "),
-            lexeme!(CharacterConstant, "'\"'"),
-        ],
-    };
+    let expected = vec![
+        lexeme!(CharacterConstant, "'a'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'abc123'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'!#%&()*+,-./:;<=>?[]^_{|}~'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "L'Z'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'\\n\\t\\r\\b\\f\\v\\a\\\\\\'\\\"\\?'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'\\0\\7\\77\\123\\400'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'\\x0\\xA\\x1f\\xDEADBEEF'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'a\\nb\\123c\\xFF'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'Az09_'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "L'Hello\\nWorld'"),
+        lexeme!(Whitespace, " "),
+        lexeme!(CharacterConstant, "'\"'"),
+    ];
 
     assert_eq!(result, expected);
 }
@@ -314,7 +287,6 @@ fn test_invalid_character_constant() {
     // THEN
     assert!(
         result
-            .tokens
             .iter()
             .all(|token| { token.kind != CharacterConstant })
     );
@@ -331,31 +303,29 @@ fn test_string_literal() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(StringLiteral, "\"a\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"abc123\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"!#%&()*+,-./:;<=>?[]^_{|}~\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "L\"Z\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"\\n\\t\\r\\b\\f\\v\\a\\\\\\\"\\\"\\?\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"\\0\\7\\77\\123\\400\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"\\x0\\xA\\x1f\\xDEADBEEF\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"a\\nb\\123c\\xFF\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"Az09_\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "L\"Hello\\nWorld\""),
-            lexeme!(Whitespace, " "),
-            lexeme!(StringLiteral, "\"'\""),
-        ],
-    };
+    let expected = vec![
+        lexeme!(StringLiteral, "\"a\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"abc123\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"!#%&()*+,-./:;<=>?[]^_{|}~\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "L\"Z\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"\\n\\t\\r\\b\\f\\v\\a\\\\\\\"\\\"\\?\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"\\0\\7\\77\\123\\400\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"\\x0\\xA\\x1f\\xDEADBEEF\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"a\\nb\\123c\\xFF\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"Az09_\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "L\"Hello\\nWorld\""),
+        lexeme!(Whitespace, " "),
+        lexeme!(StringLiteral, "\"'\""),
+    ];
 
     assert_eq!(result, expected);
 }
@@ -369,12 +339,7 @@ fn test_invalid_string_literal() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    assert!(
-        result
-            .tokens
-            .iter()
-            .all(|token| { token.kind != StringLiteral })
-    );
+    assert!(result.iter().all(|token| { token.kind != StringLiteral }));
 }
 
 #[test]
@@ -386,15 +351,13 @@ fn test_other_rule() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Other, "@"),
-            lexeme!(Whitespace, " "),
-            lexeme!(Other, "$"),
-            lexeme!(Whitespace, " "),
-            lexeme!(Other, "`"),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Other, "@"),
+        lexeme!(Whitespace, " "),
+        lexeme!(Other, "$"),
+        lexeme!(Whitespace, " "),
+        lexeme!(Other, "`"),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -407,13 +370,11 @@ fn test_comment_removal() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Whitespace, " "),
-            lexeme!(Punctuator, "-"),
-            lexeme!(Whitespace, " "),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Whitespace, " "),
+        lexeme!(Punctuator, "-"),
+        lexeme!(Whitespace, " "),
+    ];
     assert_eq!(result, expected);
 }
 
@@ -426,12 +387,10 @@ fn test_whitespace_merge() {
     let result = translation_phase_3(source).unwrap();
 
     // THEN
-    let expected = PreprocessingTokens {
-        tokens: vec![
-            lexeme!(Whitespace, " "),
-            lexeme!(Whitespace, "\n"),
-            lexeme!(Whitespace, " "),
-        ],
-    };
+    let expected = vec![
+        lexeme!(Whitespace, " "),
+        lexeme!(Whitespace, "\n"),
+        lexeme!(Whitespace, " "),
+    ];
     assert_eq!(result, expected);
 }
