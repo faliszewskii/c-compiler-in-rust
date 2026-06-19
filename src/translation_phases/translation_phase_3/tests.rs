@@ -5,7 +5,9 @@ use crate::translation_phases::translation_phase_3::PreprocessingLexemeKind::{
     Whitespace,
 };
 use crate::translation_phases::translation_phase_3::preprocessing_tokens::PreprocessingTokens;
-use crate::translation_phases::translation_phase_3::translation_phase_3;
+use crate::translation_phases::translation_phase_3::{
+    lex_preprocessing_tokens, translation_phase_3,
+};
 use itertools::Itertools;
 use predicates::Predicate;
 
@@ -19,11 +21,24 @@ macro_rules! lexeme {
 }
 
 #[test]
+fn test_line_comment() {
+    // GIVEN
+    let source = "// comment";
+    // WHEN
+    let result = lex_preprocessing_tokens(source).unwrap();
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![lexeme!(Comment, "// comment")],
+    };
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn test_block_comment() {
     // GIVEN
     let source = "/* /* abc 123 #include<iostream> 2 + 3, */";
     // WHEN
-    let result = translation_phase_3(source).unwrap();
+    let result = lex_preprocessing_tokens(source).unwrap();
     // THEN
     let expected = PreprocessingTokens {
         tokens: vec![lexeme!(
@@ -57,7 +72,7 @@ fn test_whitespace() {
     // GIVEN
     let source = "\t\n\r ";
     // WHEN
-    let result = translation_phase_3(source).unwrap();
+    let result = lex_preprocessing_tokens(source).unwrap();
     // THEN
     let expected = PreprocessingTokens {
         tokens: vec![
@@ -378,6 +393,44 @@ fn test_other_rule() {
             lexeme!(Other, "$"),
             lexeme!(Whitespace, " "),
             lexeme!(Other, "`"),
+        ],
+    };
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_comment_removal() {
+    // GIVEN
+    let source = r"/* comment */-// comment";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(Whitespace, " "),
+            lexeme!(Punctuator, "-"),
+            lexeme!(Whitespace, " "),
+        ],
+    };
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn test_whitespace_merge() {
+    // GIVEN
+    let source = "\t  \n\t\r";
+
+    // WHEN
+    let result = translation_phase_3(source).unwrap();
+
+    // THEN
+    let expected = PreprocessingTokens {
+        tokens: vec![
+            lexeme!(Whitespace, " "),
+            lexeme!(Whitespace, "\n"),
+            lexeme!(Whitespace, " "),
         ],
     };
     assert_eq!(result, expected);
