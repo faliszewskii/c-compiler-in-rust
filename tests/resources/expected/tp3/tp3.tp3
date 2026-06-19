@@ -1,0 +1,8 @@
+Punctuator(#) Identifier(include) Whitespace( ) HeaderName(<abecadlo>) Whitespace(LF)
+Punctuator(#) Identifier(define) Whitespace( ) StringLiteral("literal") Whitespace(LF)
+Whitespace(LF)
+Identifier(abc) Whitespace( ) PPNumber(1..E+3.foo) Whitespace( ) Identifier(_zbc4) Whitespace(LF)
+PPNumber(.123.456e-e-.) Whitespace( ) PPNumber(0JBK) Whitespace( ) Other(@) Whitespace(LF)
+Whitespace( ) Whitespace(LF)
+Identifier(char) Whitespace( ) Identifier(c) Whitespace( ) Punctuator(=) Whitespace( ) CharacterConstant('abc123\0') Punctuator(;) Whitespace(LF)
+Identifier(char) Punctuator([) Punctuator(]) Whitespace( ) Identifier(s) Whitespace( ) Punctuator(=) Whitespace( ) StringLiteral("\"") Whitespace(LF)
